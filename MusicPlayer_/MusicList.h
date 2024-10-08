@@ -14,7 +14,7 @@ struct MusicData {
 	std::wstring name;
 	int volume = 50;
 	int spd = 50;
-	std::wstring path;
+	wchar_t path[40000];
 
 	bool isDirectory = false;;
 	MusicList dir = nullptr;
@@ -27,7 +27,7 @@ struct MusicData {
 			fwprintf(file, L"1\n%d\n%s\n", isOpened, name.c_str());
 		}
 		else {
-			fwprintf(file, L"0\n%d\n%d\n%s\n%s\n", volume, spd, name.c_str(), path.c_str());
+			fwprintf(file, L"0\n%d\n%d\n%s\n%s\n", volume, spd, name.c_str(), path);
 		}
 	}
 
@@ -41,26 +41,6 @@ using MusicFunction = void(*)(MusicFileManager&, MusicData&, void*);
 class MusicFileManager
 {
 public:
-	void AddDummyMusic(int loc, std::wstring name) {
-		MusicData* data = CreateMusicData(name);
-
-		if (musicList == nullptr) {
-			musicList = data;
-			return;
-		}
-
-		if (loc == 0) {
-			data->next = musicList;
-			musicList = data;
-		}
-		else {
-			MusicData* beforeData = FindMusic(loc - 1);
-			MusicData* nextData = beforeData->next;
-			beforeData->next = data;
-			data->next = nextData;
-		}
-	}
-
 	void AddDummy(MusicData* data) {
 		if (data == nullptr)
 			return;
@@ -84,22 +64,20 @@ public:
 		data->dir = nullptr;
 		return data;
 	}
-	MusicData* CreateDummyFile(std::wstring name, std::wstring path) {
+	MusicData* CreateDummyFile(std::wstring name) {
 		MusicData* data = new MusicData;
 		data->isDirectory = true;
 		data->name = name;
-		data->path = path;
+		data->path[0] = '\0';
 		return data;
 	}
 
-	MusicData* GetFileByPath(std::wstring path) {
+	MusicData* GetFileByPath(std::wstring path, WIN32_FIND_DATA* fd) {
 		MusicData* data = new MusicData;
 		data->isDirectory = false;
-		data->name = path;
-		data->path = path;
-
+		data->name = fd->cFileName;
+		GetFullPathNameW(path.c_str(), sizeof(data->path) / sizeof(data->path[0]), data->path, nullptr);
 		return data;
-		//todo
 	}
 
 	void GetDirectoryByPath(std::wstring path) {
@@ -109,10 +87,11 @@ public:
 			return;
 
 		if (fd.dwFileAttributes != FILE_ATTRIBUTE_DIRECTORY) {
-			AddDummy(GetFileByPath(path));
+			AddDummy(GetFileByPath(path, &fd));
 			return;
 		}
 
+		MusicData* root = CreateDummyDirectory(path);
 		MusicData* dir = _GetDirectoryByPath(path);
 		AddDummy(dir);
 	}
@@ -126,7 +105,7 @@ public:
 		if (INVALID_HANDLE_VALUE == file)
 			return nullptr;
 
-		MusicData* dir = CreateDummyDirectory(path);
+		MusicData* firstMusic = nullptr;
 		MusicData* lastMusic = nullptr;
 
 		while (FindNextFile(file, &fd)) {
@@ -136,23 +115,22 @@ public:
 
 			MusicData* temp;
 			if (fd.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
-				temp = CreateDummyDirectory(path);
+				temp = CreateDummyDirectory(path + L'\\' +  + fd.cFileName);
 				temp->dir = _GetDirectoryByPath(path + L'\\' + fd.cFileName);
 			}
 			else {
-				temp = GetFileByPath(fd.cFileName);
+				temp = GetFileByPath(path, &fd);
 			}
 
 			if (lastMusic == nullptr) {
-				lastMusic = temp;
-				dir->dir = lastMusic;
+				firstMusic = lastMusic = temp;
 			}
 			else {
 				lastMusic->next = temp;
 				lastMusic = temp;
 			}
 		}
-		return dir;
+		return firstMusic;
 	}
 
 	void Save(std::wstring path) {
@@ -230,23 +208,6 @@ public:
 		}
 	}
 private:
-	MusicData* CreateMusicData(std::wstring path) {
-		MusicData* data = new MusicData;
-		data->next = nullptr;
-		data->path = path;
-		data->isDirectory = false;
-
-		int finalTok = 0;
-		for (int i = 0; i < path.length(); i++) {
-			if (path[i] == '\n') {
-				finalTok = i;
-			}
-		}
-		data->name = path.substr(finalTok, path.length());
-		if (data->name.length() == 0) {
-			data->name = L"NoNamed";
-		}
-	}
 	void _Save(MusicList dir) {
 		std::stack<MusicData*> stack;
 		stack.push(musicList);
@@ -294,9 +255,8 @@ private:
 				fwscanf(file, L"%d", &(data->volume));
 				fwscanf(file, L"%d", &(data->spd));
 				fwscanf(file, L"%s", nameBuffer);
-				fwscanf(file, L"%s", pathBuffer);
+				fwscanf(file, L"%s", data->path);
 				data->name = nameBuffer;
-				data->path = pathBuffer;
 			}
 			else {
 				printf("File error\n");
@@ -318,7 +278,6 @@ private:
 	MusicList musicList = nullptr;
 
 	wchar_t nameBuffer[100000];
-	wchar_t pathBuffer[100000];
 };
 
 enum class MusicPlayMode {
@@ -333,7 +292,7 @@ public:
 		if (data->isDirectory) {
 			printf("DIR. %s", data->name.c_str());
 		}
-		printf("loc:%d\npath:%s\nname:%s\n", i, data->path.c_str(), data->name.c_str());
+		printf("loc:%d\npath:%s\nname:%s\n", i, data->path, data->name.c_str());
 
 		playNow = data;
 	}

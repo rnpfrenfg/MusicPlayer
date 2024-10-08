@@ -1,7 +1,5 @@
 #pragma once
-#pragma once
 
-#include <combaseapi.h>
 #include <vector>
 
 enum class EventType
@@ -12,7 +10,7 @@ enum class EventType
 	NUM_EVENTS
 };
 
-interface EventListener
+class EventListener
 {
 public:
 	virtual ~EventListener() {};
