@@ -2,10 +2,14 @@
 
 #include "includewindow.h"
 
+#include <mmsystem.h>
+#include <mmreg.h>
 #include <string>
 #include <vector>
 #include <stack>
 #include <iostream>
+
+#include "MMFile.h"
 
 struct MusicData;
 using MusicList = MusicData*;
@@ -312,11 +316,19 @@ enum class MusicPlayMode {
 
 class MusicPlayer {
 public:
-	void Init();
+	void Init(HWND window);
 
 	void Play(int i);
+	void Pause();
+	void Resume();
+	void OnDone();
 
 	MusicFileManager manager;
 private:
 	MusicData* playNow;
+	HWAVEOUT targetDevice;
+	WAVEHDR header;
+
+	MMFile musicFile;
+	void* musicFileData = nullptr;
 };

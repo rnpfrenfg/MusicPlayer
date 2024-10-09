@@ -129,6 +129,7 @@
   <ItemGroup>
     <ClInclude Include="Image.h" />
     <ClInclude Include="includewindow.h" />
+    <ClInclude Include="MMFile.h" />
     <ClInclude Include="MusicEvent.h" />
     <ClInclude Include="MusicList.h" />
     <ClInclude Include="Page.h" />
@@ -140,6 +141,7 @@
   <ItemGroup>
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MMFile.cpp" />
     <ClCompile Include="MusicEvent.cpp" />
     <ClCompile Include="MusicList.cpp" />
     <ClCompile Include="Page.cpp" />

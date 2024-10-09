@@ -52,6 +52,9 @@ LRESULT CALLBACK winProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			program->onHwnd[id](HIWORD(wParam));
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
+	case MM_WOM_DONE: {
+		program->musicPlayer.OnDone();
+	}
 	case WM_LBUTTONDOWN:
 		page->OnLButtonDown(LOWORD(lParam), HIWORD(lParam));
 		return 0;
@@ -133,6 +136,8 @@ bool Program::Init(HINSTANCE instance, int maxWidth, int maxHeight, LPCWSTR clas
 		pageHwnds[i] = new HWND[maxButtons];
 		memset(pageHwndLen, 0, pages * sizeof(int));
 	}
+
+	musicPlayer.Init(handle);
 
 	return true;
 }

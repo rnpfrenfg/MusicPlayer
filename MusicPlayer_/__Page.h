@@ -15,7 +15,7 @@ public:
 		width = program->GetWidth();
 		height = program->GetHeight();
 
-		program->MakeButton(PageID::MAIN, L"Test", 200, 0, 100, 100, [](WORD){
+		program->MakeButton(PageID::MAIN, L"Test", 200, 0, 100, 100, [](WORD) {
 			auto* program = Program::GetInstance();
 			program->MovePage(PageID::TEST);
 		});
@@ -30,6 +30,14 @@ public:
 				break;
 			}
 			}
+		});
+		program->MakeButton(PageID::MAIN, L"Resume", 100, height - 100, 50, 50, [](WORD) {
+			auto* program = Program::GetInstance();
+			program->musicPlayer.Resume();
+		});
+		program->MakeButton(PageID::MAIN, L"Pause", 200, height - 100, 50, 50, [](WORD) {
+			auto* program = Program::GetInstance();
+			program->musicPlayer.Pause();
 		});
 
 		auto& musicManager = program->musicPlayer.manager;
