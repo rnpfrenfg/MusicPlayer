@@ -37,8 +37,8 @@ public:
 
 	HDC hdc;
 	HINSTANCE hInstance;
-
-	MusicFileManager musicManager;
+	
+	MusicPlayer musicPlayer;
 private:
 	const int maxButtons = 100;
 

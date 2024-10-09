@@ -15,6 +15,9 @@ void CCreateConsole()
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int CmdShow)
 {
+	std::locale::global(std::locale("korean"));
+	CCreateConsole();
+
 	Program::InitInstance();
 	Program* program = Program::GetInstance();
 
@@ -24,7 +27,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 	program->pages[0] = new MainPage();
 	program->pages[1] = new TestPage();
 
-	CCreateConsole();
 	program->Start((int)PageID::MAIN, CmdShow);
 	return 0;
 }

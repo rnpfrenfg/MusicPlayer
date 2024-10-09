@@ -24,18 +24,15 @@ public:
 			switch (hi) {
 			case LBN_SELCHANGE:
 			{
-				MainPage* mainPage = (MainPage*) Program::GetInstance()->pages[(int)PageID::MAIN];
-				HWND listBox = mainPage->listBox;
-				wchar_t str[128] = {0,};
+				auto listBox = ((MainPage*)Program::GetInstance()->pages[(int)PageID::MAIN])->listBox;
 				int i = SendMessage(listBox, LB_GETCURSEL, 0, 0);
-				SendMessage(listBox, LB_GETTEXT, i, (LPARAM)str);
-				SetWindowText(Program::GetInstance()->handle, str);   
+				Program::GetInstance()->musicPlayer.Play(i);
 				break;
 			}
 			}
 		});
 
-		auto& musicManager = program->musicManager;
+		auto& musicManager = program->musicPlayer.manager;
 		musicManager.GetDirectoryByPath(L"Music");
 
 		UpdateList();
@@ -46,13 +43,25 @@ public:
 		}
 	}
 
+	void OnPageLoad() override {
+		UpdateList();
+	}
+
 	void UpdateList() {
 		SendMessage(listBox, LB_RESETCONTENT, 0, 0);
 
 		Program* program = Program::GetInstance();
-		program->musicManager.ForEach([](MusicFileManager& manager, MusicData& data, void* val) {
+		program->musicPlayer.manager.ForEach([](MusicFileManager& manager, MusicData& data, int depth, void* val) {
 			HWND listBox = (HWND)val;
-			SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)(data.name.c_str()));
+
+			std::wstring temp = L"";
+			for (int i = 0; i < depth; i++)
+				temp += L"  ";
+			if (data.isDirectory)
+				temp += L"FOLDER:  ";
+			temp += data.name;
+
+			SendMessage(listBox, LB_ADDSTRING, 0, (LPARAM)(temp.c_str()));
 		}, listBox);
 	}
 private:

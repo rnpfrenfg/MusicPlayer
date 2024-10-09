@@ -4,6 +4,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #pragma comment (lib,"ws2_32.lib")
+#pragma comment (lib,"winmm.lib")
 
 #include <WinSock2.h>
 #include <Ws2tcpip.h>

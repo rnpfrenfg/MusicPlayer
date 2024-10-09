@@ -50,7 +50,6 @@ LRESULT CALLBACK winProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		if (nullptr != (program->onHwnd[id]))
 			program->onHwnd[id](HIWORD(wParam));
-		SetFocus(hwnd);
 		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 	case WM_LBUTTONDOWN:

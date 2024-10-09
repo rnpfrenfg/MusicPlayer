@@ -36,7 +36,7 @@ private:
 
 class MusicFileManager;
 
-using MusicFunction = void(*)(MusicFileManager&, MusicData&, void*);
+using MusicFunction = void(*)(MusicFileManager&, MusicData&, int depth, void*);
 
 class MusicFileManager
 {
@@ -76,8 +76,27 @@ public:
 		MusicData* data = new MusicData;
 		data->isDirectory = false;
 		data->name = fd->cFileName;
-		GetFullPathNameW(path.c_str(), sizeof(data->path) / sizeof(data->path[0]), data->path, nullptr);
+		int pathLen = GetFullPathNameW(path.c_str(), sizeof(data->path) / sizeof(data->path[0]), data->path, nullptr);
+		data->path[pathLen] = L'\\';
+		wcscpy(&(data->path[pathLen + 1]), data->name.c_str());
 		return data;
+	}
+
+	std::wstring GetDirectoryName(std::wstring path) {
+		auto name = path;
+		int len = name.length();
+		auto cstr = name.c_str();
+		int last = -1;
+		for (int i = 0; i < len; i++) {
+			if (cstr[i] == '\\')
+				last = i;
+		}
+
+		if (last == -1) {
+			return path;
+		}
+		
+		return name.substr(last);
 	}
 
 	void GetDirectoryByPath(std::wstring path) {
@@ -91,7 +110,8 @@ public:
 			return;
 		}
 
-		MusicData* root = CreateDummyDirectory(path);
+		auto name = GetDirectoryName(path);
+		MusicData* root = CreateDummyDirectory(name);
 		MusicData* dir = _GetDirectoryByPath(path);
 		AddDummy(dir);
 	}
@@ -111,11 +131,10 @@ public:
 		while (FindNextFile(file, &fd)) {
 			if (fd.cFileName[0] == '.')
 				continue;
-			wprintf(L"%s\n", fd.cFileName);
-
+			
 			MusicData* temp;
 			if (fd.dwFileAttributes == FILE_ATTRIBUTE_DIRECTORY) {
-				temp = CreateDummyDirectory(path + L'\\' +  + fd.cFileName);
+				temp = CreateDummyDirectory(fd.cFileName);
 				temp->dir = _GetDirectoryByPath(path + L'\\' + fd.cFileName);
 			}
 			else {
@@ -168,8 +187,10 @@ public:
 					return now;
 				}
 
+				nowLoc++;
+
 				if (now->isDirectory) {
-					stack.push(now);
+					stack.push(now->next);
 					stack.push(now->dir);
 					break;
 				}
@@ -188,6 +209,9 @@ public:
 		std::stack<MusicData*> stack;
 		stack.push(musicList);
 		MusicData* now;
+		int depth = 0;
+
+		SEARCH:
 		while (!stack.empty()) {
 			now = stack.top();
 			stack.pop();
@@ -195,16 +219,18 @@ public:
 			while (true) {
 				if (now == nullptr) break;
 				
-				func(*this, *now, val);
+				func(*this, *now, depth, val);
 
 				if (now->isDirectory) {
 					stack.push(now->next);
 					stack.push(now->dir);
-					break;
+					depth++;
+					goto SEARCH;
 				}
 
 				now = now->next;
 			}
+			depth--;
 		}
 	}
 private:
@@ -286,16 +312,9 @@ enum class MusicPlayMode {
 
 class MusicPlayer {
 public:
-	void Play(int i) {
-		MusicData* data = manager.FindMusic(i);
+	void Init();
 
-		if (data->isDirectory) {
-			printf("DIR. %s", data->name.c_str());
-		}
-		printf("loc:%d\npath:%s\nname:%s\n", i, data->path, data->name.c_str());
-
-		playNow = data;
-	}
+	void Play(int i);
 
 	MusicFileManager manager;
 private:
