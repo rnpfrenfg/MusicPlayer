@@ -2,6 +2,7 @@
 
 #include "includewindow.h"
 
+#include <dshow.h>
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <string>
@@ -316,19 +317,30 @@ enum class MusicPlayMode {
 
 class MusicPlayer {
 public:
-	void Init(HWND window);
+	bool Init(HWND window);
 
 	void Play(int i);
 	void Pause();
 	void Resume();
 	void OnDone();
 
+	//volume min -10000, max 0
+	long Volume();
+	void Volume(long size);
+	__int64 Duration();
+	__int64 GetPosition();
+	void SetPosition(__int64* cur, bool absolute);
+
 	MusicFileManager manager;
 private:
-	MusicData* playNow;
-	HWAVEOUT targetDevice;
-	WAVEHDR header;
+	void Clear();
 
-	MMFile musicFile;
-	void* musicFileData = nullptr;
+	IGraphBuilder* graph;
+	IMediaControl* control;
+	IMediaEvent* event;
+	IBasicAudio* audio;
+	IMediaSeeking* seek;
+
+	__int64 duration;
+	MusicData* playNow;
 };

@@ -1,7 +1,8 @@
 #include "MusicList.h"
 
+#include <dshow.h>
 
-void MusicPlayer::Init(HWND handle) {
+bool MusicPlayer::Init(HWND handle) {
 	int devices = waveOutGetNumDevs();
 	WAVEOUTCAPS cap;
 	char devname[128];
@@ -14,23 +15,43 @@ void MusicPlayer::Init(HWND handle) {
 
 	}
 
-	//WAVEFORMATEXTENSIBLE format;
-	WAVEFORMATEX format;
-	format.wFormatTag = WAVE_FORMAT_PCM;
-	format.nChannels = 2;
-	format.nSamplesPerSec = 44100;
-	format.wBitsPerSample = 16;
-	format.nBlockAlign = format.nChannels * format.wBitsPerSample / 8;
-	format.nAvgBytesPerSec = format.nSamplesPerSec * format.nBlockAlign;
-	format.cbSize = 0;
+	HRESULT err = CoInitialize(NULL);
+	if (FAILED(err))
+		return false;
 
-	HRESULT err = waveOutOpen(&targetDevice, WAVE_MAPPER, &format, (DWORD_PTR)handle, 0, CALLBACK_WINDOW);
-	if (err != MMSYSERR_NOERROR) {
-		std::wcout << err;
-		return;
+	control = NULL;
+	graph = NULL;
+	event = NULL;
+	audio = NULL;
+	seek = NULL;
+
+	playNow = NULL;
+
+	return true;
+}
+
+void MusicPlayer::Clear() {
+	if (control) {
+		control->Stop();
+		control->Release();
+		control = NULL;
 	}
-
-	std::wcout << "SUCCCESSSS\n";
+	if (graph) {
+		graph->Release();
+		graph = NULL;
+	}
+	if (event) {
+		event->Release();
+		event = NULL;
+	}
+	if (audio) {
+		audio->Release();
+		audio = NULL;
+	}
+	if (seek){
+		seek->Release();
+		seek = NULL;
+	}
 }
 
 void MusicPlayer::Play(int loc) {
@@ -41,25 +62,85 @@ void MusicPlayer::Play(int loc) {
 	}
 	wprintf(L"%s\n", music->path);
 
-	if(musicFileData != nullptr)
-		waveOutUnprepareHeader(targetDevice, &header, sizeof(header));
+	if (playNow == music) {
+		control->Run();
+		return;
+	}
 
-	musicFile.Close();
-	musicFileData = musicFile.Read(music->path);
+	this->Clear();
+	playNow = music;
 
-	header.lpData = (char*)musicFileData + 44;
-	header.dwBufferLength = musicFile.fileLen - 44;
+	HRESULT err = CoCreateInstance(CLSID_FilterGraph, NULL, CLSCTX_INPROC_SERVER, IID_IGraphBuilder, (void**)&graph);
+	if (FAILED(err))
+		return;
 
-	waveOutPrepareHeader(targetDevice, &header, sizeof(WAVEHDR));
-	waveOutWrite(targetDevice, &header, sizeof(WAVEHDR));
+	graph->QueryInterface(IID_IMediaControl, (void**)&control);
+	graph->QueryInterface(IID_IMediaEvent, (void**)&event);
+	graph->QueryInterface(IID_IBasicAudio, (void**)&audio);
+	graph->QueryInterface(IID_IMediaSeeking, (void**)&seek);
+
+	err = graph->RenderFile(music->path, NULL);
+	if (SUCCEEDED(err))
+	{
+		err = control->Run();
+		if (FAILED(err))
+		{
+			std::wcout << "FAILED TO READ : " << music->path << '\n';
+		}
+		else {
+			seek->GetDuration(&duration);
+			Volume(-500);
+			std::wcout << Volume()<<' '<<Duration() << '\n';
+		}
+	}
+}
+
+__int64 MusicPlayer::Duration() {
+	return duration;
+}
+
+long MusicPlayer::Volume() {
+	long volume;
+	
+	HRESULT err = audio->get_Volume(&volume);
+	DxThrowIfFailed(err);
+
+	return volume;
+}
+
+void MusicPlayer::Volume(long volume) {
+	HRESULT err = audio->put_Volume(volume);
+}
+
+__int64 MusicPlayer::GetPosition() {
+	if (!seek)
+		return 0;
+
+	__int64 pos;
+	seek->GetCurrentPosition(&pos);
+	return pos;
+}
+
+void MusicPlayer::SetPosition(__int64* cur, bool absolute) {
+	if (seek) {
+		DWORD flag;
+		if (absolute)
+			flag = AM_SEEKING_AbsolutePositioning | AM_SEEKING_SeekToKeyFrame;
+		else
+			flag = AM_SEEKING_RelativePositioning | AM_SEEKING_SeekToKeyFrame;
+		seek->SetPositions(cur, flag, NULL, AM_SEEKING_NoPositioning);
+	}
 }
 
 void MusicPlayer::OnDone() {
-	waveOutWrite(targetDevice, &header, sizeof(WAVEHDR));
+	if(control)
+	control->Run();
 }
 void MusicPlayer::Pause() {
-	waveOutPause(targetDevice);
+	if (control)
+	control->Pause();
 }
 void MusicPlayer::Resume() {
-	waveOutRestart(targetDevice);
+	if (control)
+	control->Run();
 }
