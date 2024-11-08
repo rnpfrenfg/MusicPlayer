@@ -14,6 +14,7 @@ using WMPLib;
 using System.Data;
 using System.Windows.Forms;
 using System.Windows.Media;
+using System.Security.Cryptography.X509Certificates;
 
 namespace MusicPlayer
 {
@@ -24,8 +25,7 @@ namespace MusicPlayer
     {
         SEQUENTIAL, RANDOM
     }
-
-    internal class MusicPlayer
+    public class MusicPlayer
     {
         public MusicPlayer()
         {
@@ -80,10 +80,6 @@ namespace MusicPlayer
             if (target.isDirectory) return;
             int targetIdx = GetIndex(target);
             (playlist[targetIdx], playlist[0]) = (playlist[0], playlist[targetIdx]);
-        }
-        private void SetPlayList()
-        {
-
         }
         public void PlayNode(TreeNode node)
         {
@@ -144,8 +140,7 @@ namespace MusicPlayer
                         targetFolder = fileManager.mainForder;
                     }
 
-                    int size = 0;
-                    fileManager.ForEach((MusicData a, MusicData folder) => { if (!a.isDirectory) size++; }, targetFolder);
+                    int size = fileManager.GetSize();
                     if(size == 0)
                     {
                         return null;
@@ -284,40 +279,6 @@ namespace MusicPlayer
             SaveChange();
         }
 
-        public void ChangeSaveFolder(String newpath)
-        {
-            if(saveFolder != null)
-            {
-                saveFolder = "userdata";//TODO
-            }
-
-            saveFolder = newpath;
-            SaveChange();
-        }
-
-        private void SaveChange()
-        {
-            if (saveFolder == null)
-                return;
-            return;
-
-            string jsonString = JsonSerializer.Serialize(this);
-            using (StreamWriter sw = File.CreateText(saveFolder))
-            {
-                sw.WriteLine(jsonString);
-            }
-        }
-
-        public static MusicPlayer Load(string saveFolder)
-        {
-            string s;
-            using (StreamReader sr = File.OpenText(saveFolder))
-            {
-                s = sr.ReadToEnd();
-            }
-            return JsonSerializer.Deserialize <MusicPlayer>(s);
-        }
-
         public MusicFileManager GetFileManager()
         {
             return fileManager;
@@ -335,19 +296,172 @@ namespace MusicPlayer
             return "";
         }
 
+        private void WriteMusicData(MusicData data, StreamWriter sw)
+        {
+            sw.WriteLine(data.isDirectory);
+            sw.WriteLine(data.name);
+            if (!data.isDirectory)
+            {
+                sw.WriteLine(data.path);
+                sw.WriteLine(data.spd);
+                sw.WriteLine(data.volume);
+            }
+        }
+        private MusicData ReadMusicData(StreamReader sr)
+        {
+            bool isDir = bool.Parse(sr.ReadLine());
+            string name = sr.ReadLine();
+            if (isDir)
+            {
+                return MusicData.CreateFolder(name);
+            }
+            else
+            {
+                string path = sr.ReadLine();
+                int spd = int.Parse(sr.ReadLine());
+                int volume = int.Parse(sr.ReadLine());
+                var data = MusicData.CreateMusic(path);
+                data.name = name;
+                data.spd = spd;
+                data.volume = volume;
+                return data;
+            }
+        }
+        private void WriteDirectory(MusicData dir, Dictionary<MusicData, int> table, StreamWriter sw, bool isRoot)
+        {
+            var now = dir.dir;
+            if (!isRoot) sw.WriteLine(table[dir]);
+
+            if (now == null)
+            {
+                sw.WriteLine(0);
+                return;
+            }
+            int size = now.ListLengt();
+            sw.WriteLine(size);
+            while (now != null)
+            {
+                sw.WriteLine(table[now]);
+                now = now.next;
+            }
+        }
+        private void ReadDirectory(MusicData[] list, StreamReader sr, bool isRoot)
+        {
+            MusicData folder;
+            if (isRoot) folder = fileManager.mainForder;
+            else folder = list[int.Parse(sr.ReadLine())];
+            int size = int.Parse(sr.ReadLine());
+            if(size == 0)
+            {
+                folder.dir = null;
+                return;
+            }
+            folder.dir = list[int.Parse(sr.ReadLine())];
+            var now = folder.dir;
+            for (int i = 1; i < size; i++)
+            {
+                now.next = list[int.Parse(sr.ReadLine())];
+                now = now.next;
+            }
+        }
+
+        private void SaveChange()
+        {
+            if (saveFolder == null)
+                return;
+
+            StreamWriter sw = new StreamWriter(saveFolder);
+            sw.WriteLine(allSound);
+            sw.WriteLine(allSpd);
+            sw.WriteLine((int)playMode);
+            sw.WriteLine((int)nextMode);
+
+            int size = fileManager.GetSize();
+            sw.WriteLine(size);
+            Dictionary<MusicData, int> table = new Dictionary<MusicData, int>();
+            int idx = 0;
+            fileManager.ForEach((MusicData data, MusicData file) =>{
+                table.Add(data, idx);
+                WriteMusicData(data, sw);
+                idx++;
+            }, fileManager.mainForder.dir);
+
+            WriteDirectory(fileManager.mainForder,table,sw, true);
+            size = 0;
+            fileManager.ForEach((MusicData data, MusicData folder) => {
+                if (data.isDirectory)
+                {
+                    size++;
+                }
+            }, fileManager.mainForder.dir);
+            sw.WriteLine(size);
+            fileManager.ForEach((MusicData data, MusicData folder) => {
+                if (data.isDirectory)
+                {
+                    WriteDirectory(data, table, sw, false);
+                }
+            }, fileManager.mainForder.dir);
+
+            sw.WriteLine(playlistIndex);
+            if (playlist == null)
+                sw.WriteLine(0);
+            else sw.WriteLine(playlist.Length);
+            for (int i = 0; i < playlistIndex; i++)
+            {
+                sw.WriteLine(table[playlist[i]]);
+            }
+            sw.Close();
+        }
+        public MusicPlayer(string save) : this()
+        {
+            if (!File.Exists(save))
+            {
+                this.saveFolder = save;
+                return;
+            }
+
+            saveFolder = save;
+
+            StreamReader sr = new StreamReader(saveFolder);
+            allSound = int.Parse(sr.ReadLine());
+            allSpd = int.Parse(sr.ReadLine());
+            playMode = (RepeateMode)int.Parse(sr.ReadLine());
+            nextMode = (GetNextMode)int.Parse(sr.ReadLine());
+
+            int size = int.Parse(sr.ReadLine());
+            MusicData[] list = new MusicData[size];
+            for (int i = 0; i < size; i++)
+                list[i] = ReadMusicData(sr);
+
+            ReadDirectory(list,sr,true);
+            size = int.Parse(sr.ReadLine());
+            for(int i = 0; i < size; i++)
+            {
+                ReadDirectory(list, sr, false);
+            }
+
+            playlistIndex = int.Parse(sr.ReadLine());
+            size = int.Parse(sr.ReadLine());
+            playlist = new MusicData[size];
+            for(int i = 0; i < size; i++)
+            {
+                playlist[i] = list[int.Parse(sr.ReadLine())];
+            }
+            sr.Close();
+        }
         private String saveFolder = null;
 
-        private int allSound = 0;
-        private int allSpd = 0;
+        public MusicFileManager fileManager;
 
-        private RepeateMode playMode;
-        private GetNextMode nextMode;
-        private MusicFileManager fileManager;
-        private MusicData playing = null;
-        private MusicData targetFolder = null;
-        private MusicData[] playlist = null;
+        public int allSound = 0;
+        public int allSpd = 0;
+        public RepeateMode playMode;
+        public GetNextMode nextMode;
+
         private int playlistIndex = 0;
-        private Queue<MusicData> data;
+        public MusicData playing = null;
+        public MusicData targetFolder = null;
+        private MusicData[] playlist = null;
 
         MediaPlayer wmp;
     }

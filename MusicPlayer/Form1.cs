@@ -76,8 +76,7 @@ namespace MusicPlayer
             strTable = new EngStringTable();
             SelectLanguage(strTable);
 
-            player = new MusicPlayer();
-            player.AddMusic("Music");
+            player = new MusicPlayer("userdata.txt");
             UpdateMusicList();
             ChangeMode();
             player.AdjustSettingAllMusic(100, 20);

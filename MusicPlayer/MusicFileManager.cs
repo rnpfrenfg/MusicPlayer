@@ -26,7 +26,13 @@ namespace MusicPlayer
             while (ret.next != null) ret = ret.next;
             return ret;
         }
-
+        public int ListLengt()
+        {
+            var data = this;
+            int ret = 0;
+            while (data != null) { data = data.next; ret++; }
+            return ret;
+        }
         public MusicData GetNext(int idx)
         {
             int now = 0;
@@ -48,14 +54,14 @@ namespace MusicPlayer
                 result += "."+list[i];
             return result;
         }
-        private static MusicData CreateFolder(String path)
+        public static MusicData CreateFolder(String path)
         {
             MusicData folder = new MusicData();
             folder.name = GetPathName(path);
             folder.isDirectory = true;
             return folder;
         }
-        private static MusicData CreateMusic(string path)
+        public static MusicData CreateMusic(string path)
         {
             MusicData file = new MusicData();
             file.name = GetPathName(path);
@@ -119,7 +125,7 @@ namespace MusicPlayer
 
     public delegate void MusicListForeach(MusicData data, MusicData parent);
 
-    internal class MusicFileManager
+    public class MusicFileManager
     {
         public MusicData mainForder = null;
 
@@ -287,6 +293,12 @@ namespace MusicPlayer
             }
         }
 
+        public int GetSize()
+        {
+            int size = 0;
+            ForEach((MusicData a, MusicData d) => { size++; }, mainForder.dir);
+            return size;
+        }
         public void ChangeFileTree(MusicData mainData)
         {
             if (!mainData.isDirectory)
