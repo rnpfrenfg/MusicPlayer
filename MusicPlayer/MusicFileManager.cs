@@ -42,7 +42,11 @@ namespace MusicPlayer
         private static String GetPathName(string path)
         {
             var l = path.Split('\\');
-            return l[l.Length - 1].Split('.')[0];
+            var list = l[l.Length - 1].Split('.');
+            string result = list[0];
+            for (int i = 1; i < list.Length - 1; i++)
+                result += "."+list[i];
+            return result;
         }
         private static MusicData CreateFolder(String path)
         {

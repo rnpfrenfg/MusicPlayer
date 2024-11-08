@@ -255,11 +255,11 @@ namespace MusicPlayer
 
         private void ChangePlayingSetting()
         {
-            double volume = (100.0 * (allSound) / 100.0);
+            double volume = allSound / 100.0;
             if (playing != null) volume *= playing.volume/100.0;
             wmp.Volume = volume;
 
-            double spd = 1 * (allSpd / 100.0);
+            double spd = allSpd / 100.0;
             if (playing != null) spd *= playing.spd / 100.0;
 
             wmp.SpeedRatio = spd;
