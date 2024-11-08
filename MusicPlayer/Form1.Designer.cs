@@ -1,6 +1,6 @@
 ﻿namespace MusicPlayer
 {
-    partial class Form1
+    partial class form1
     {
         /// <summary>
         /// Required designer variable.
@@ -34,7 +34,6 @@
             this.StopButton = new System.Windows.Forms.Button();
             this.PlayingMusicTextBox = new System.Windows.Forms.Label();
             this.playingForderTextBox = new System.Windows.Forms.Label();
-            this.PlayModeSelectBox = new System.Windows.Forms.CheckedListBox();
             this.NextButton = new System.Windows.Forms.Button();
             this.PlayingMusicText = new System.Windows.Forms.Label();
             this.playingForderText = new System.Windows.Forms.Label();
@@ -51,6 +50,9 @@
             this.button2 = new System.Windows.Forms.Button();
             this.AllMusicLabel = new System.Windows.Forms.Label();
             this.TargetMusicLabel = new System.Windows.Forms.Label();
+            this.RepeateModeBox = new System.Windows.Forms.ComboBox();
+            this.NextModeBox = new System.Windows.Forms.ComboBox();
+            this.PlaySelectedButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -60,6 +62,7 @@
             this.MusicListBox.Name = "MusicListBox";
             this.MusicListBox.Size = new System.Drawing.Size(255, 426);
             this.MusicListBox.TabIndex = 0;
+            this.MusicListBox.NodeMouseClick += new System.Windows.Forms.TreeNodeMouseClickEventHandler(this.MusicListBox_NodeMouseClick);
             // 
             // BeforeButton
             // 
@@ -69,6 +72,7 @@
             this.BeforeButton.TabIndex = 1;
             this.BeforeButton.Text = "before";
             this.BeforeButton.UseVisualStyleBackColor = true;
+            this.BeforeButton.Click += new System.EventHandler(this.BeforeButton_Click);
             // 
             // PlayButton
             // 
@@ -76,7 +80,7 @@
             this.PlayButton.Name = "PlayButton";
             this.PlayButton.Size = new System.Drawing.Size(75, 23);
             this.PlayButton.TabIndex = 2;
-            this.PlayButton.Text = "play";
+            this.PlayButton.Text = "resume";
             this.PlayButton.UseVisualStyleBackColor = true;
             this.PlayButton.Click += new System.EventHandler(this.PlayButton_Click);
             // 
@@ -88,6 +92,7 @@
             this.StopButton.TabIndex = 3;
             this.StopButton.Text = "stop";
             this.StopButton.UseVisualStyleBackColor = true;
+            this.StopButton.Click += new System.EventHandler(this.StopButton_Click);
             // 
             // PlayingMusicTextBox
             // 
@@ -109,16 +114,6 @@
             this.playingForderTextBox.Text = "forder";
             this.playingForderTextBox.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
-            // PlayModeSelectBox
-            // 
-            this.PlayModeSelectBox.CheckOnClick = true;
-            this.PlayModeSelectBox.FormattingEnabled = true;
-            this.PlayModeSelectBox.Location = new System.Drawing.Point(630, 192);
-            this.PlayModeSelectBox.Name = "PlayModeSelectBox";
-            this.PlayModeSelectBox.Size = new System.Drawing.Size(120, 84);
-            this.PlayModeSelectBox.TabIndex = 6;
-            this.PlayModeSelectBox.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.PlayModeSelectBox_ItemCheck);
-            // 
             // NextButton
             // 
             this.NextButton.Location = new System.Drawing.Point(615, 290);
@@ -127,6 +122,7 @@
             this.NextButton.TabIndex = 7;
             this.NextButton.Text = "next";
             this.NextButton.UseVisualStyleBackColor = true;
+            this.NextButton.Click += new System.EventHandler(this.NextButton_Click);
             // 
             // PlayingMusicText
             // 
@@ -254,11 +250,42 @@
             this.TargetMusicLabel.TabIndex = 22;
             this.TargetMusicLabel.Text = "TargetMusic";
             // 
-            // Form1
+            // RepeateModeBox
+            // 
+            this.RepeateModeBox.FormattingEnabled = true;
+            this.RepeateModeBox.Location = new System.Drawing.Point(601, 202);
+            this.RepeateModeBox.Name = "RepeateModeBox";
+            this.RepeateModeBox.Size = new System.Drawing.Size(67, 20);
+            this.RepeateModeBox.TabIndex = 25;
+            this.RepeateModeBox.SelectedIndexChanged += new System.EventHandler(this.RepeateModeBox_SelectedIndexChanged);
+            // 
+            // NextModeBox
+            // 
+            this.NextModeBox.FormattingEnabled = true;
+            this.NextModeBox.Location = new System.Drawing.Point(684, 202);
+            this.NextModeBox.Name = "NextModeBox";
+            this.NextModeBox.Size = new System.Drawing.Size(67, 20);
+            this.NextModeBox.TabIndex = 26;
+            this.NextModeBox.SelectedIndexChanged += new System.EventHandler(this.NextModeBox_SelectedIndexChanged);
+            // 
+            // PlaySelectedButton
+            // 
+            this.PlaySelectedButton.Location = new System.Drawing.Point(453, 319);
+            this.PlaySelectedButton.Name = "PlaySelectedButton";
+            this.PlaySelectedButton.Size = new System.Drawing.Size(75, 23);
+            this.PlaySelectedButton.TabIndex = 27;
+            this.PlaySelectedButton.Text = "PlaySelect";
+            this.PlaySelectedButton.UseVisualStyleBackColor = true;
+            this.PlaySelectedButton.Click += new System.EventHandler(this.PlaySelectedButton_Click);
+            // 
+            // form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(800, 450);
+            this.Controls.Add(this.PlaySelectedButton);
+            this.Controls.Add(this.NextModeBox);
+            this.Controls.Add(this.RepeateModeBox);
             this.Controls.Add(this.TargetMusicLabel);
             this.Controls.Add(this.AllMusicLabel);
             this.Controls.Add(this.TargetMusicSound);
@@ -275,15 +302,14 @@
             this.Controls.Add(this.playingForderText);
             this.Controls.Add(this.PlayingMusicText);
             this.Controls.Add(this.NextButton);
-            this.Controls.Add(this.PlayModeSelectBox);
             this.Controls.Add(this.playingForderTextBox);
             this.Controls.Add(this.PlayingMusicTextBox);
             this.Controls.Add(this.StopButton);
             this.Controls.Add(this.PlayButton);
             this.Controls.Add(this.BeforeButton);
             this.Controls.Add(this.MusicListBox);
-            this.Name = "Form1";
-            this.Text = "Form1";
+            this.Name = "form1";
+            this.Text = "PlaySelect";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             this.ResumeLayout(false);
@@ -299,7 +325,6 @@
         private System.Windows.Forms.Button StopButton;
         private System.Windows.Forms.Label PlayingMusicTextBox;
         private System.Windows.Forms.Label playingForderTextBox;
-        private System.Windows.Forms.CheckedListBox PlayModeSelectBox;
         private System.Windows.Forms.Button NextButton;
         private System.Windows.Forms.Label PlayingMusicText;
         private System.Windows.Forms.Label playingForderText;
@@ -316,6 +341,9 @@
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.Label AllMusicLabel;
         private System.Windows.Forms.Label TargetMusicLabel;
+        private System.Windows.Forms.ComboBox RepeateModeBox;
+        private System.Windows.Forms.ComboBox NextModeBox;
+        private System.Windows.Forms.Button PlaySelectedButton;
     }
 }
 

@@ -8,20 +8,31 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using WMPLib;
+
 namespace MusicPlayer
 {
-    public partial class Form1 : Form
+    public partial class form1 : Form
     {
         StringTable strTable;
         MusicPlayer player;
 
+        TreeNode lastSelectedNode = null;
+
         void SelectLanguage(StringTable strTable)
         {
-            PlayModeSelectBox.Items.Clear();
-            PlayModeSelectBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_ONE));
-            PlayModeSelectBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_FOLDER));
-            PlayModeSelectBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_ALL));
-            PlayModeSelectBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_NO));
+            RepeateModeBox.Items.Clear();
+            RepeateModeBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_ONE));
+            RepeateModeBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_FOLDER));
+            RepeateModeBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_ALL));
+            RepeateModeBox.Items.Add(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_NO));
+
+            NextModeBox.Items.Clear();
+            NextModeBox.Items.Add(strTable.Format(StringTableIndex.NEXTMODEBOX_SEQUENTIAL));
+            NextModeBox.Items.Add(strTable.Format(StringTableIndex.NEXTMODEBOX_RANDOM));
+
+            RepeateModeBox.SelectedIndex = 0;
+            NextModeBox.SelectedIndex = 0;
 
             PlayButton.Text = strTable.Format(StringTableIndex.PLAYER_START);
             NextButton.Text = strTable.Format(StringTableIndex.PLAYER_NEXT);
@@ -58,17 +69,18 @@ namespace MusicPlayer
             MusicListBox.ExpandAll();
         }
 
-        public Form1()
+        public form1()
         {
             InitializeComponent();
 
-            strTable = new KoreanStringTable();
+            strTable = new EngStringTable();
             SelectLanguage(strTable);
 
             player = new MusicPlayer();
             player.AddMusic("Music");
             UpdateMusicList();
-
+            ChangeMode();
+            player.AdjustSettingAllMusic(100, 20);
             return;
         }
 
@@ -77,37 +89,71 @@ namespace MusicPlayer
 
         }
 
-        private void PlayModeSelectBox_ItemCheck(object sender, ItemCheckEventArgs e)
+        private void PlayButton_Click(object sender, EventArgs e)
         {
-            if(e.NewValue == CheckState.Checked)
-            {
-                for(int i=0; i<PlayModeSelectBox.Items.Count; i++)
-                {
-                    if (e.Index != i) PlayModeSelectBox.SetItemChecked(i, false);
+            player.Resume();
+        }
 
-                    PlayMode mode;
-                    switch (i)
-                    {
-                        case 0: mode = PlayMode.ONE; break;
-                        case 1: mode = PlayMode.FOLDER; break;
-                        case 2: mode = PlayMode.ALL; break;
-                        case 3: mode = PlayMode.NO; break;
-                        default: mode = PlayMode.ONE; break;
-                    }
-                    player.ChangePlayMode(mode);
-                }
-            }
-            else
+        private void MusicListBox_NodeMouseClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Button.Equals(MouseButtons.Left))
             {
-                if (PlayModeSelectBox.SelectedItems.Count == 0)
-                {
-                }
+                lastSelectedNode = e.Node;
             }
         }
 
-        private void PlayButton_Click(object sender, EventArgs e)
+        void ChangeMode()
         {
-            player.Play();
+            if (player == null) return;
+
+            var str = RepeateModeBox.SelectedItem.ToString();
+            RepeateMode mode;
+            if (str.Equals(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_ALL)))
+                mode = RepeateMode.ALL;
+            else if (str.Equals(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_NO)))
+                mode = RepeateMode.NO;
+            else if (str.Equals(strTable.Format(StringTableIndex.PLAYMODEBOX_REPEATE_FOLDER)))
+                mode = RepeateMode.FOLDER;
+            else mode = RepeateMode.ONE;
+
+            str = NextModeBox.SelectedItem.ToString();
+            GetNextMode nextMode;
+            if (str.Equals(strTable.Format(StringTableIndex.NEXTMODEBOX_RANDOM)))
+                nextMode = GetNextMode.RANDOM;
+            else nextMode = GetNextMode.SEQUENTIAL;
+
+            player.ChangePlayMode(mode, nextMode);
+        }
+        private void RepeateModeBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ChangeMode();
+        }
+
+        private void NextModeBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            ChangeMode();
+        }
+
+        private void NextButton_Click(object sender, EventArgs e)
+        {
+            player.Next();
+        }
+
+        private void BeforeButton_Click(object sender, EventArgs e)
+        {
+            player.Before();
+        }
+
+        private void StopButton_Click(object sender, EventArgs e)
+        {
+            player.Stop();
+        }
+
+        private void PlaySelectedButton_Click(object sender, EventArgs e)
+        {
+            if (lastSelectedNode == null)
+                return;
+            player.PlayNode(lastSelectedNode);
         }
     }
 }

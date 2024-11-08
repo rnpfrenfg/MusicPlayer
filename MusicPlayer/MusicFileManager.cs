@@ -27,6 +27,18 @@ namespace MusicPlayer
             return ret;
         }
 
+        public MusicData GetNext(int idx)
+        {
+            int now = 0;
+            MusicData data = this;
+            while(now != idx && data.next != null)
+            {
+                data = data.next;
+                now++;
+            }
+            return data;
+        }
+
         private static String GetPathName(string path)
         {
             var l = path.Split('\\');
@@ -45,6 +57,8 @@ namespace MusicPlayer
             file.name = GetPathName(path);
             file.path = path;
             file.isDirectory = false;
+            file.volume = 100;
+            file.spd = 100;
             return file;
         }
         public static MusicData ReadMusicData(String path)
@@ -240,13 +254,12 @@ namespace MusicPlayer
         }
 
         //Action<music, folder>
-        public void ForEach(Action<MusicData, MusicData> act)
+        public void ForEach(Action<MusicData, MusicData> act, MusicData targetFolder)
         {
-            if (null == mainForder) return;
-
+            if (null == targetFolder) return;
 
             Stack<MusicData> stack = new Stack<MusicData>();
-            stack.Push(mainForder);
+            stack.Push(targetFolder);
             MusicData now = null;
             while (stack.Count > 0)
             {
@@ -255,7 +268,9 @@ namespace MusicPlayer
                 {
                     if (now == null) break;
 
-                    act(now, stack.Peek());
+                    if(stack.Count == 0)
+                        act(now, null);
+                    else act(now, stack.Peek());
 
                     if (now.isDirectory)
                     {
