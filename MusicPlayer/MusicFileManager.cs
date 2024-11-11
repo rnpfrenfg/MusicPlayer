@@ -132,7 +132,7 @@ namespace MusicPlayer
         public MusicFileManager()
         {
             mainForder = new MusicData();
-            mainForder.name = "";
+            mainForder.name = "all";
             mainForder.path = "";
             mainForder.isDirectory = true;
             mainForder.dir = null;
@@ -293,10 +293,18 @@ namespace MusicPlayer
             }
         }
 
-        public int GetSize()
+        public int GetdSize(MusicData folder)
         {
             int size = 0;
-            ForEach((MusicData a, MusicData d) => { size++; }, mainForder.dir);
+            ForEach((MusicData a, MusicData d) => { size++; }, folder.dir);
+            return size;
+        }
+        public int GetSizeWithoutDir(MusicData folder)
+        {
+            if (!folder.isDirectory)
+                return 1;
+            int size = 0;
+            ForEach((MusicData a, MusicData d) => { if(!a.isDirectory)size++; }, folder.dir);
             return size;
         }
         public void ChangeFileTree(MusicData mainData)

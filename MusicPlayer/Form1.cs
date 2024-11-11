@@ -43,6 +43,36 @@ namespace MusicPlayer
             playingForderTextBox.Text = strTable.Format(StringTableIndex.STATUS_NOWPLAYINGFORDER);
         }
 
+        void UpdateBox()
+        {
+            var music = player.playing;
+            if (music != null)
+            {
+                TargetMusicSpdBox.Text = music.spd.ToString();
+                TargetMusicSoundBox.Text = music.volume.ToString();
+            }
+            else
+            {
+                TargetMusicSpdBox.Text = "0";
+                TargetMusicSoundBox.Text = "0";
+            }
+            AllMusicSoundBox.Text = player.allSound.ToString();
+            AllMusicSpdBox.Text = player.allSpd.ToString();
+        }
+
+        public void OnMediaOpened(Object NewState, EventArgs a)
+        {
+            PlayingForderText.Text = player.targetFolder == null ? "ALL" : player.targetFolder.name;
+            PlayingMusicText.Text = player.playing == null ? "nothing" : player.playing.name;
+
+            UpdateBox();
+        }
+        public void OnMediaPosChanged(Object NewState, EventArgs a)
+        {
+            double val = player.GetLocation();
+            trackBar1.Value = (int) (val * trackBar1.Maximum);
+        }
+
         private void AddMusicDataToTree(MusicData folder, TreeNodeCollection nodes)
         {
             var now = folder.dir;
@@ -73,13 +103,19 @@ namespace MusicPlayer
         {
             InitializeComponent();
 
+            AllowDrop = true;
+
             strTable = new EngStringTable();
             SelectLanguage(strTable);
 
             player = new MusicPlayer("userdata.txt");
             UpdateMusicList();
             ChangeMode();
+
+            player.AddOpenEvent(OnMediaOpened);
+            player.AddPositionEvent(OnMediaPosChanged);
             player.AdjustSettingAllMusic(100, 20);
+            UpdateBox();
             return;
         }
 
@@ -153,6 +189,52 @@ namespace MusicPlayer
             if (lastSelectedNode == null)
                 return;
             player.PlayNode(lastSelectedNode);
+        }
+
+        private void AllMusicSettingApplyButton_Click(object sender, EventArgs e)
+        {
+            int spd = int.Parse(AllMusicSpdBox.Text);
+            int vol = int.Parse(AllMusicSoundBox.Text);
+
+            player.AdjustSettingAllMusic(spd, vol);
+            UpdateBox();
+        }
+
+        private void TargetMusicSettingApplyBox_Click(object sender, EventArgs e)
+        {
+            int spd = int.Parse(TargetMusicSpdBox.Text);
+            int vol = int.Parse(TargetMusicSoundBox.Text);
+
+            player.AdjustSettingPlayingMusic(spd, vol);
+            UpdateBox();
+        }
+
+        private void trackBar1_Scroll(object sender, EventArgs e)
+        {
+        }
+
+        private void trackBar1_MouseCaptureChanged(object sender, EventArgs e)
+        {
+            var maxi = trackBar1.Maximum;
+            Console.WriteLine(trackBar1.Value + "/" + maxi);
+            double per = trackBar1.Value / (double)maxi;
+            player.ChangeLocation(per);
+        }
+
+        private void form1_DragDrop(object sender, DragEventArgs e)
+        {
+            var files = (string[])e.Data.GetData(DataFormats.FileDrop, false);
+
+            foreach (var file in files)
+            {
+                player.AddMusic(file);
+            }
+            UpdateMusicList();
+        }
+
+        private void form1_DragEnter(object sender, DragEventArgs e)
+        {
+            e.Effect = DragDropEffects.All;
         }
     }
 }

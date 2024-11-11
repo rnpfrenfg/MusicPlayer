@@ -34,6 +34,10 @@ namespace MusicPlayer
 
             wmp.MediaEnded += Player_PlayStateChange;
         }
+        public void AddOpenEvent(EventHandler handler)
+        {
+            wmp.MediaOpened += handler;
+        }
         private void Player_PlayStateChange(Object NewState, EventArgs a)
         {
             Next();
@@ -140,14 +144,14 @@ namespace MusicPlayer
                         targetFolder = fileManager.mainForder;
                     }
 
-                    int size = fileManager.GetSize();
+                    int size = fileManager.GetSizeWithoutDir(targetFolder);
                     if(size == 0)
                     {
                         return null;
                     }
                     ret = new MusicData[size];
                     int idx = 0;
-                    fileManager.ForEach((MusicData a, MusicData folder) => { if (!a.isDirectory) { ret[idx] = a;idx++; } }, targetFolder);
+                    fileManager.ForEach((MusicData a, MusicData folder) => { if (!a.isDirectory) { ret[idx] = a;idx++; } }, targetFolder.dir);
                     
                     if (nextMode == GetNextMode.RANDOM)
                     {
@@ -180,7 +184,7 @@ namespace MusicPlayer
                 case RepeateMode.FOLDER:
                 case RepeateMode.ALL:
                     playlistIndex++;
-                    if (playlist == null || playlistIndex == playlist.Length)
+                    if (playlist == null || playlistIndex >= playlist.Length)
                     {
                         playlist = GenerateNewPlaylist();
                     }
@@ -263,7 +267,11 @@ namespace MusicPlayer
         public void ChangePlayMode(RepeateMode mode, GetNextMode nextMode)
         {
             playMode = mode;
-            this.nextMode = nextMode;
+            if (this.nextMode != nextMode)
+            {
+                this.nextMode = nextMode;
+                GenerateNewPlaylist();
+            }
             SaveChange();
         }
 
@@ -365,6 +373,18 @@ namespace MusicPlayer
             }
         }
 
+        public void ChangeLocation(double per)
+        {
+            if(playing != null)
+                wmp.Position = TimeSpan.FromMilliseconds(1000*wmp.NaturalDuration.TimeSpan.Seconds * per);
+        }
+        public double GetLocation()
+        {
+            return wmp.Position.Milliseconds / (double)wmp.NaturalDuration.TimeSpan.Milliseconds;
+        }
+        public void AddPositionEvent(EventHandler handler)
+        {
+        }
         private void SaveChange()
         {
             if (saveFolder == null)
@@ -376,7 +396,7 @@ namespace MusicPlayer
             sw.WriteLine((int)playMode);
             sw.WriteLine((int)nextMode);
 
-            int size = fileManager.GetSize();
+            int size = fileManager.GetdSize(fileManager.mainForder);
             sw.WriteLine(size);
             Dictionary<MusicData, int> table = new Dictionary<MusicData, int>();
             int idx = 0;
@@ -405,10 +425,13 @@ namespace MusicPlayer
             sw.WriteLine(playlistIndex);
             if (playlist == null)
                 sw.WriteLine(0);
-            else sw.WriteLine(playlist.Length);
-            for (int i = 0; i < playlistIndex; i++)
+            else
             {
-                sw.WriteLine(table[playlist[i]]);
+                sw.WriteLine(playlist.Length);
+                for (int i = 0; i < playlist.Length; i++)
+                {
+                    sw.WriteLine(table[playlist[i]]);
+                }
             }
             sw.Close();
         }

@@ -36,9 +36,9 @@
             this.playingForderTextBox = new System.Windows.Forms.Label();
             this.NextButton = new System.Windows.Forms.Button();
             this.PlayingMusicText = new System.Windows.Forms.Label();
-            this.playingForderText = new System.Windows.Forms.Label();
+            this.PlayingForderText = new System.Windows.Forms.Label();
             this.trackBar1 = new System.Windows.Forms.TrackBar();
-            this.button1 = new System.Windows.Forms.Button();
+            this.AllMusicSettingApplyButton = new System.Windows.Forms.Button();
             this.AllMusicSpdBox = new System.Windows.Forms.TextBox();
             this.AllMusicSoundBox = new System.Windows.Forms.TextBox();
             this.AllMusicSpd = new System.Windows.Forms.Label();
@@ -47,7 +47,7 @@
             this.TargetMusicSpd = new System.Windows.Forms.Label();
             this.TargetMusicSoundBox = new System.Windows.Forms.TextBox();
             this.TargetMusicSpdBox = new System.Windows.Forms.TextBox();
-            this.button2 = new System.Windows.Forms.Button();
+            this.TargetMusicSettingApplyBox = new System.Windows.Forms.Button();
             this.AllMusicLabel = new System.Windows.Forms.Label();
             this.TargetMusicLabel = new System.Windows.Forms.Label();
             this.RepeateModeBox = new System.Windows.Forms.ComboBox();
@@ -107,7 +107,7 @@
             // playingForderTextBox
             // 
             this.playingForderTextBox.AutoSize = true;
-            this.playingForderTextBox.Location = new System.Drawing.Point(366, 264);
+            this.playingForderTextBox.Location = new System.Drawing.Point(366, 254);
             this.playingForderTextBox.Name = "playingForderTextBox";
             this.playingForderTextBox.Size = new System.Drawing.Size(37, 12);
             this.playingForderTextBox.TabIndex = 5;
@@ -133,14 +133,14 @@
             this.PlayingMusicText.TabIndex = 8;
             this.PlayingMusicText.Text = "label3";
             // 
-            // playingForderText
+            // PlayingForderText
             // 
-            this.playingForderText.AutoSize = true;
-            this.playingForderText.Location = new System.Drawing.Point(453, 264);
-            this.playingForderText.Name = "playingForderText";
-            this.playingForderText.Size = new System.Drawing.Size(38, 12);
-            this.playingForderText.TabIndex = 9;
-            this.playingForderText.Text = "label4";
+            this.PlayingForderText.AutoSize = true;
+            this.PlayingForderText.Location = new System.Drawing.Point(421, 254);
+            this.PlayingForderText.Name = "PlayingForderText";
+            this.PlayingForderText.Size = new System.Drawing.Size(38, 12);
+            this.PlayingForderText.TabIndex = 9;
+            this.PlayingForderText.Text = "label4";
             // 
             // trackBar1
             // 
@@ -149,15 +149,18 @@
             this.trackBar1.Name = "trackBar1";
             this.trackBar1.Size = new System.Drawing.Size(213, 45);
             this.trackBar1.TabIndex = 10;
+            this.trackBar1.Scroll += new System.EventHandler(this.trackBar1_Scroll);
+            this.trackBar1.MouseCaptureChanged += new System.EventHandler(this.trackBar1_MouseCaptureChanged);
             // 
-            // button1
+            // AllMusicSettingApplyButton
             // 
-            this.button1.Location = new System.Drawing.Point(464, 107);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 11;
-            this.button1.Text = "apply ";
-            this.button1.UseVisualStyleBackColor = true;
+            this.AllMusicSettingApplyButton.Location = new System.Drawing.Point(464, 107);
+            this.AllMusicSettingApplyButton.Name = "AllMusicSettingApplyButton";
+            this.AllMusicSettingApplyButton.Size = new System.Drawing.Size(75, 23);
+            this.AllMusicSettingApplyButton.TabIndex = 11;
+            this.AllMusicSettingApplyButton.Text = "apply ";
+            this.AllMusicSettingApplyButton.UseVisualStyleBackColor = true;
+            this.AllMusicSettingApplyButton.Click += new System.EventHandler(this.AllMusicSettingApplyButton_Click);
             // 
             // AllMusicSpdBox
             // 
@@ -223,14 +226,15 @@
             this.TargetMusicSpdBox.Size = new System.Drawing.Size(100, 21);
             this.TargetMusicSpdBox.TabIndex = 17;
             // 
-            // button2
+            // TargetMusicSettingApplyBox
             // 
-            this.button2.Location = new System.Drawing.Point(718, 107);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 16;
-            this.button2.Text = "apply ";
-            this.button2.UseVisualStyleBackColor = true;
+            this.TargetMusicSettingApplyBox.Location = new System.Drawing.Point(718, 107);
+            this.TargetMusicSettingApplyBox.Name = "TargetMusicSettingApplyBox";
+            this.TargetMusicSettingApplyBox.Size = new System.Drawing.Size(75, 23);
+            this.TargetMusicSettingApplyBox.TabIndex = 16;
+            this.TargetMusicSettingApplyBox.Text = "apply ";
+            this.TargetMusicSettingApplyBox.UseVisualStyleBackColor = true;
+            this.TargetMusicSettingApplyBox.Click += new System.EventHandler(this.TargetMusicSettingApplyBox_Click);
             // 
             // AllMusicLabel
             // 
@@ -292,14 +296,14 @@
             this.Controls.Add(this.TargetMusicSpd);
             this.Controls.Add(this.TargetMusicSoundBox);
             this.Controls.Add(this.TargetMusicSpdBox);
-            this.Controls.Add(this.button2);
+            this.Controls.Add(this.TargetMusicSettingApplyBox);
             this.Controls.Add(this.AllMusicSound);
             this.Controls.Add(this.AllMusicSpd);
             this.Controls.Add(this.AllMusicSoundBox);
             this.Controls.Add(this.AllMusicSpdBox);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.AllMusicSettingApplyButton);
             this.Controls.Add(this.trackBar1);
-            this.Controls.Add(this.playingForderText);
+            this.Controls.Add(this.PlayingForderText);
             this.Controls.Add(this.PlayingMusicText);
             this.Controls.Add(this.NextButton);
             this.Controls.Add(this.playingForderTextBox);
@@ -311,6 +315,8 @@
             this.Name = "form1";
             this.Text = "PlaySelect";
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.DragDrop += new System.Windows.Forms.DragEventHandler(this.form1_DragDrop);
+            this.DragEnter += new System.Windows.Forms.DragEventHandler(this.form1_DragEnter);
             ((System.ComponentModel.ISupportInitialize)(this.trackBar1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -327,9 +333,9 @@
         private System.Windows.Forms.Label playingForderTextBox;
         private System.Windows.Forms.Button NextButton;
         private System.Windows.Forms.Label PlayingMusicText;
-        private System.Windows.Forms.Label playingForderText;
+        private System.Windows.Forms.Label PlayingForderText;
         private System.Windows.Forms.TrackBar trackBar1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button AllMusicSettingApplyButton;
         private System.Windows.Forms.TextBox AllMusicSpdBox;
         private System.Windows.Forms.TextBox AllMusicSoundBox;
         private System.Windows.Forms.Label AllMusicSpd;
@@ -338,7 +344,7 @@
         private System.Windows.Forms.Label TargetMusicSpd;
         private System.Windows.Forms.TextBox TargetMusicSoundBox;
         private System.Windows.Forms.TextBox TargetMusicSpdBox;
-        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button TargetMusicSettingApplyBox;
         private System.Windows.Forms.Label AllMusicLabel;
         private System.Windows.Forms.Label TargetMusicLabel;
         private System.Windows.Forms.ComboBox RepeateModeBox;
